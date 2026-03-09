@@ -1,6 +1,0 @@
-{
-	"parent": "block/template_bars_post_ends",
-	"textures": {
-		"edge": "block/iron_bars"
-	}
-}

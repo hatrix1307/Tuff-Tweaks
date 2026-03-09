@@ -1,8 +1,0 @@
-{
-	"parent": "item/moss_carpet",
-	"textures": {
-		"particle": "block/pale_moss_block",
-		"wool": "block/pale_moss_block",
-		"side": "block/pale_moss_side_overlay"
-	}
-}

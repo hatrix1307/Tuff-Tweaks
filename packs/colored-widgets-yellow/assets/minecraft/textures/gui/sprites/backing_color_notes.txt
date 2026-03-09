@@ -1,3 +1,0 @@
-before applying color, set widget to:
-Brightness 37
-Contrast 26

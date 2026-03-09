@@ -1,6 +1,0 @@
-{
-	"parent": "block/template_bars_cap",
-	"textures": {
-		"edge": "block/iron_bars"
-	}
-}
