@@ -1,0 +1,1 @@
+{"block.piston.contract":{"sounds":[{"name":"tile\/piston\/in","volume":0.05}],"replace":true,"subtitle":"subtitles.block.piston.move"},"block.piston.extend":{"sounds":[{"name":"tile\/piston\/out","volume":0.05}],"replace":true,"subtitle":"subtitles.block.piston.move"}}
