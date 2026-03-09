@@ -1,2 +1,5 @@
 # Tuff-Tweaks
-Basically Vanilla Tweaks for Tuff Client.
+Uses Vanilla Tweaks textures but is made for Tuff Client
+
+Credits:
+Vanilla Tweaks: https://vanillatweaks.net/
