@@ -276,6 +276,9 @@ body::after {
   display: flex;
   flex-direction: column;
   padding-bottom: 16px;
+  /* Fade top/bottom when scrollable */
+  mask-image: linear-gradient(to bottom, transparent 0px, black 8px, black calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 8px, black calc(100% - 24px), transparent 100%);
 }
 
 .sb-section { padding: 16px 0 0; }
@@ -305,8 +308,6 @@ body::after {
   transition: all .12s;
   text-align: left;
 }
-
-.sb-btn .sb-icon { font-size: 14px; line-height: 1; }
 
 .sb-btn span.sb-label { flex: 1; }
 
@@ -345,12 +346,13 @@ body::after {
 }
 
 .sb-footer {
-  margin-top: auto;
+  margin-top: 12px;
   padding: 14px;
   border-top: 1px solid var(--br);
   display: flex;
   flex-direction: column;
   gap: 5px;
+  flex-shrink: 0;
 }
 
 .sb-footer-row {
@@ -393,8 +395,6 @@ body::after {
   padding-bottom: 9px;
   border-bottom: 1px solid var(--br);
 }
-
-.sec-icon { font-size: 15px; line-height: 1; }
 
 .sec-title {
   font-family: var(--font-px);
@@ -495,6 +495,7 @@ body::after {
   image-rendering: pixelated;
   object-fit: cover;
   display: block;
+  border-radius: 2px;
 }
 
 .card.selected .card-img { border-color: var(--gr4); }

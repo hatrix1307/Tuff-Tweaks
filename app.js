@@ -1,38 +1,7 @@
 /* ── TUFF TWEAKS — app.js ─────────────────────────────────── */
 
-const CAT_ICONS = {
-  Terrain:     '🌿',
-  Unobtrusive: '👁',
-  Utility:     '⚙',
-  Aesthetic:   '✨',
-  GUI:         '🖥',
-  Variation:   '🎲',
-  // VT may use slightly different names
-  'Terrain Tweaks':     '🌿',
-  'Unobtrusive Tweaks': '👁',
-  'Survival Utility':   '⚙',
-  'Aesthetic':          '✨',
-  'HUD / Interface':    '🖥',
-  'Variation':          '🎲',
-};
-
-function getCatIcon(name) {
-  if (!name) return '📦';
-  return CAT_ICONS[name]
-    || (name.toLowerCase().includes('terrain')     ? '🌿' : null)
-    || (name.toLowerCase().includes('unobtrus')    ? '👁' : null)
-    || (name.toLowerCase().includes('utility')     ? '⚙' : null)
-    || (name.toLowerCase().includes('aesthetic')   ? '✨' : null)
-    || (name.toLowerCase().includes('gui')         ? '🖥' : null)
-    || (name.toLowerCase().includes('hud')         ? '🖥' : null)
-    || (name.toLowerCase().includes('variation')   ? '🎲' : null)
-    || (name.toLowerCase().includes('peace')       ? '☮' : null)
-    || (name.toLowerCase().includes('fun')         ? '🎭' : null)
-    || '📦';
-}
-
 // ── Pick the best preview texture from a pack's file list ─────
-// Always prefer blocks/ then items/ then anything else.
+// Prefer blocks/ then items/ then anything else.
 // Avoid animations, overlays, destroy stages, sub-folders.
 function getPreviewFile(pack) {
   const files = pack.files || [];
@@ -40,12 +9,11 @@ function getPreviewFile(pack) {
   const score = f => {
     if (!f.endsWith('.png')) return -1;
     const lower = f.toLowerCase();
-    // Discard known-bad
     if (lower.includes('destroy_stage'))   return -1;
     if (lower.includes('_overlay'))        return -1;
     if (lower.includes('/variated/'))      return -1;
     if (lower.includes('/particle/'))      return -1;
-    if (/\/\d+\.png$/.test(f))             return -1; // bare numbered frames
+    if (/\/\d+\.png$/.test(f))             return -1;
 
     let s = 0;
     if (lower.includes('/textures/blocks/')) s += 30;
@@ -53,7 +21,6 @@ function getPreviewFile(pack) {
     else if (lower.includes('/textures/gui/')) s += 10;
     else if (lower.includes('/textures/')) s += 5;
 
-    // Prefer clean, non-variant textures
     if (lower.includes('_side'))   s += 2;
     if (lower.includes('_top'))    s += 1;
     if (lower.includes('_front'))  s += 1;
@@ -66,6 +33,40 @@ function getPreviewFile(pack) {
     .filter(x => x.s >= 0)
     .sort((a, b) => b.s - a.s)
     [0]?.f || null;
+}
+
+// ── 1.12.2 compatibility filter ───────────────────────────────
+// Mirrors the skip rules in console-extractor.js remapPath().
+// Returns true if a file path should be excluded from the output zip.
+function isIncompat(f) {
+  const mc = 'assets/minecraft/';
+  if (!f.startsWith(mc)) return true; // realms/ or unknown namespace
+  const rel = f.slice(mc.length);
+  return (
+    rel.startsWith('models/')                                  || // 1.13+ model format
+    rel.startsWith('items/')                                   || // 1.21.4+ item defs
+    rel.startsWith('blockstates/')                             || // 1.13+ model refs
+    rel.startsWith('shaders/')                                 || // modern GLSL
+    (rel.startsWith('lang/') && rel.endsWith('.json'))         || // wrong lang format
+    rel.startsWith('font/')                                    || // 1.13+ font system
+    rel.startsWith('textures/block/')                          || // should be blocks/
+    rel.startsWith('textures/item/')                           || // should be items/
+    rel.startsWith('textures/gui/sprites/')                    || // 1.20.2+ atlas
+    rel.startsWith('textures/gui/realms/')                        // Realms UI
+  );
+}
+
+// ── FILTERS ────────────────────────────────────────────────────
+// Pack IDs (lowercased) or name substrings to exclude entirely.
+// Panoramas are excluded — Tuff Client doesn't use them.
+const EXCLUDE_ID_CONTAINS = [
+  'panorama', 'pano',
+];
+
+function isExcluded(pack) {
+  const id   = (pack.id   || '').toLowerCase();
+  const name = (pack.name || '').toLowerCase();
+  return EXCLUDE_ID_CONTAINS.some(s => id.includes(s) || name.includes(s));
 }
 
 // ── STATE ──────────────────────────────────────────────────────
@@ -90,7 +91,9 @@ async function boot() {
   try {
     const res = await fetch('./packs/manifest.json');
     if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
-    MANIFEST = await res.json();
+    const raw = await res.json();
+    MANIFEST  = raw.filter(p => !isExcluded(p));
+    console.log(`Loaded ${raw.length} packs, showing ${MANIFEST.length} after filters.`);
   } catch (err) {
     document.getElementById('content').innerHTML = `
       <div class="err-banner">
@@ -112,6 +115,9 @@ async function boot() {
   }
   CATS = [...catMap.entries()].map(([name, packs]) => ({ name, packs }));
 
+  // Show total available in badge on load
+  document.getElementById('badge').textContent = `${MANIFEST.length} tweaks`;
+
   buildSidebar();
   buildContent();
 
@@ -129,7 +135,6 @@ function buildSidebar() {
     btn.className  = 'sb-btn';
     btn.dataset.cat = cat.name;
     btn.innerHTML = `
-      <span class="sb-icon">${getCatIcon(cat.name)}</span>
       <span class="sb-label">${cat.name}</span>
       <span class="sb-count" id="sc-${CSS.escape(cat.name)}">0</span>`;
     btn.addEventListener('click', () =>
@@ -157,7 +162,7 @@ function buildContent(filter = '') {
       root.innerHTML = '<div class="empty-msg">No tweaks matched that search.</div>';
       return;
     }
-    const sec  = makeSectionEl('Search Results', null, results.length);
+    const sec  = makeSectionEl('Search Results', results.length);
     const grid = sec.querySelector('.grid');
     results.forEach(p => grid.appendChild(makeCard(p)));
     root.appendChild(sec);
@@ -166,7 +171,7 @@ function buildContent(filter = '') {
 
   root.innerHTML = '';
   for (const cat of CATS) {
-    const sec  = makeSectionEl(cat.name, getCatIcon(cat.name), cat.packs.length);
+    const sec  = makeSectionEl(cat.name, cat.packs.length);
     sec.id           = 'sec-' + cat.name;
     sec.dataset.cat  = cat.name;
     const grid = sec.querySelector('.grid');
@@ -176,12 +181,11 @@ function buildContent(filter = '') {
   }
 }
 
-function makeSectionEl(name, icon, count) {
+function makeSectionEl(name, count) {
   const sec = document.createElement('div');
   sec.className = 'section';
   sec.innerHTML = `
     <div class="sec-header">
-      ${icon ? `<span class="sec-icon">${icon}</span>` : ''}
       <h2 class="sec-title">${name.toUpperCase()}</h2>
       <span class="sec-count">${count}</span>
     </div>
@@ -200,17 +204,26 @@ function makeCard(pack) {
   card.addEventListener('click', () => togglePack(pack.id));
 
   // Preview image
+  // Preview image — prefer the pack's own icon (pack.png) if available,
+  // then fall back to scoring textures in the pack's file list.
   const imgWrap = document.createElement('div');
   imgWrap.className = 'card-img';
-  imgWrap.textContent = getCatIcon(pack.category);
 
-  const previewFile = getPreviewFile(pack);
-  if (previewFile) {
+  const iconSrc    = pack.icon ? `./packs/${pack.id}/${pack.icon}` : null;
+  const previewSrc = getPreviewFile(pack)
+    ? `./packs/${pack.id}/${getPreviewFile(pack)}`
+    : null;
+
+  const candidates = [iconSrc, previewSrc].filter(Boolean);
+
+  function tryNext(idx) {
+    if (idx >= candidates.length) return;
     const img = new Image();
-    img.src = `./packs/${pack.id}/${previewFile}`;
     img.onload  = () => { imgWrap.textContent = ''; imgWrap.appendChild(img); };
-    // img.onerror: leave the emoji fallback
+    img.onerror = () => tryNext(idx + 1);
+    img.src     = candidates[idx];
   }
+  tryNext(0);
 
   // Body
   const body = document.createElement('div');
@@ -267,7 +280,7 @@ function refreshCards() {
 function updateBadge() {
   const n = SEL.size;
   const badge = document.getElementById('badge');
-  badge.textContent = n === 0 ? '0 selected' : `${n} selected`;
+  badge.textContent = n === 0 ? `${MANIFEST.length} tweaks` : `${n} selected`;
   badge.classList.toggle('active', n > 0);
   document.getElementById('dl-btn').disabled = n === 0;
 
@@ -316,8 +329,10 @@ async function startDownload() {
 
     for (const pack of selectedPacks) {
       for (const file of (pack.files || [])) {
-        // Defensively skip any 1.13+ paths that might have slipped through
-        if (file.match(/\/textures\/block\//) || file.match(/\/textures\/item\//)) continue;
+        // Skip any file that wouldn't be compatible with 1.12.2.
+        // The extractor already enforces this, but guard defensively here too
+        // in case of older manifests.
+        if (isIncompat(file)) continue;
         fileMap.set(file, `./packs/${pack.id}/${file}`);
       }
     }
