@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tuff Tweaks — 1.12.2 Resource Pack Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inconsolata:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hdr">
+  <a class="logo" href="#">
+    <canvas id="logo-canvas" width="40" height="40"></canvas>
+    <div class="logo-text-wrap">
+      <span class="logo-name">Tuff Tweaks</span>
+      <span class="logo-ver">1.12.2 · Eaglercraft · Tuff Client</span>
+    </div>
+  </a>
+  <div class="hdr-mid">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input id="search" type="text" placeholder="Search tweaks…" autocomplete="off">
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div id="badge" class="badge">0 selected</div>
+    <button id="clear-btn" class="btn btn-ghost" onclick="clearAll()">Clear</button>
+    <button id="dl-btn" class="btn btn-primary" disabled onclick="startDownload()">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download Pack
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-section">
+      <div class="sb-heading">CATEGORIES</div>
+      <div id="sb-cats"></div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-footer-row"><span class="sf-label">Pack Format</span><span class="sf-val">3 (1.12.2)</span></div>
+      <div class="sb-footer-row"><span class="sf-label">Textures</span><span class="sf-val">1.12.2 + 1.13+</span></div>
+      <div class="sb-footer-row"><span class="sf-label">Source</span><a href="https://vanillatweaks.net" target="_blank" class="sf-link">VanillaTweaks</a></div>
+    </div>
+  </nav>
+
+  <main class="main" id="main">
+    <div id="content"></div>
+  </main>
+
+</div>
+
+<!-- Download overlay -->
+<div id="overlay" class="overlay" aria-hidden="true">
+  <div class="dl-modal">
+    <div class="dl-title">Building Resource Pack</div>
+    <div class="dl-progress-wrap">
+      <div class="dl-progress-bar"><div id="dl-bar"></div></div>
+      <div id="dl-pct" class="dl-pct">0%</div>
+    </div>
+    <div id="dl-label" class="dl-label">Starting…</div>
+    <div id="dl-sub" class="dl-sub"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
